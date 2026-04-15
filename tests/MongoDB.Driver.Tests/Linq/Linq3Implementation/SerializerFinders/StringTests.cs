@@ -114,6 +114,8 @@ public class StringTests
         [TestHelpers.MakeLambda((MyModel model) => model.Name.ToUpperInvariant()), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.Trim()), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.Trim(new char[] { ' ' })), typeof(StringSerializer)],
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart(new char[] { ' ' })), typeof(StringSerializer)],
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd(new char[] { ' ' })), typeof(StringSerializer)],
     ];
 
     private class MyModel
