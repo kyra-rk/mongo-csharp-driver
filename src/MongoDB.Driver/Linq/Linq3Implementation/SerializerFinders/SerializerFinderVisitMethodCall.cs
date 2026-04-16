@@ -152,9 +152,11 @@ internal partial class SerializerFinderVisitor
                 case "ToArray": DeduceToArrayMethodSerializers(); break;
                 case "ToList": DeduceToListSerializers(); break;
                 case "ToString": DeduceToStringSerializers(); break;
-                case "Trim": DeduceTrimSerializers(); break;
-                case "TrimStart": DeduceTrimSerializers(); break;
-                case "TrimEnd": DeduceTrimSerializers(); break;
+                case "Trim":
+                case "TrimStart":
+                case "TrimEnd":
+                    DeduceTrimSerializers();
+                    break;
                 case "Truncate": DeduceTruncateSerializers(); break;
                 case "Union": DeduceUnionSerializers(); break;
                 case "Week": DeduceWeekSerializers(); break;

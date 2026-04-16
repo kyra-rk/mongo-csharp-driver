@@ -20,6 +20,7 @@ using FluentAssertions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Linq;
 using MongoDB.Driver.Linq.Linq3Implementation.SerializerFinders;
+using MongoDB.Driver.Linq.Linq3Implementation.Serializers;
 using Xunit;
 
 namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.SerializerFinders;
@@ -27,7 +28,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.SerializerFinders;
 public class StringTests
 {
     [Theory]
-    [MemberData(nameof(TestCases))]
+    [MemberData(nameof(SupportedTestCases))]
     public void SerializerFinder_should_resolve_string_methods(LambdaExpression expression, Type expectedSerializerType)
     {
         var serializerMap = TestHelpers.CreateSerializerMap(expression);
@@ -38,7 +39,21 @@ public class StringTests
         serializerMap.GetSerializer(expression.Body).Should().BeOfType(expectedSerializerType);
     }
 
-    public static readonly object[][] TestCases =
+    [Theory]
+    [MemberData(nameof(NotSupportedTestCases))]
+    public void SerializerFinder_should_throw_for_unsupported_string_methods(LambdaExpression expression, Type expectedSerializerType)
+    {
+        var serializerMap = TestHelpers.CreateSerializerMap(expression);
+
+        SerializerFinder.FindSerializers(expression.Body, null, serializerMap);
+
+        serializerMap.IsKnown(expression.Body, out var serializer).Should().BeTrue();
+        serializer.Should().BeOfType(typeof(UnknowableSerializer<>).MakeGenericType(expression.Body.Type));
+        var exception = Record.Exception(() => serializerMap.GetSerializer(expression.Body));
+        exception.Should().BeOfType<ExpressionNotSupportedException>();
+    }
+
+    public static readonly object[][] SupportedTestCases =
     [
         [TestHelpers.MakeLambda((MyModel model) => model.Tags.AnyStringIn("tag1", "tag2")), typeof(BooleanSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Tags.AnyStringIn(new StringOrRegularExpression[] { "tag1" })), typeof(BooleanSerializer)],
@@ -116,6 +131,16 @@ public class StringTests
         [TestHelpers.MakeLambda((MyModel model) => model.Name.Trim(new char[] { ' ' })), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart(new char[] { ' ' })), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd(new char[] { ' ' })), typeof(StringSerializer)],
+    ];
+
+    public static readonly object[][] NotSupportedTestCases =
+    [
+        // TODO CSHARP-5979 Make these tests supported once we support parameterless and single char overloads of Trim, TrimStart and TrimEnd.
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.Trim(' ')), typeof(StringSerializer)],
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart(' ')), typeof(StringSerializer)],
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd()), typeof(StringSerializer)],
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart()), typeof(StringSerializer)],
+        [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd()), typeof(StringSerializer)],
     ];
 
     private class MyModel
