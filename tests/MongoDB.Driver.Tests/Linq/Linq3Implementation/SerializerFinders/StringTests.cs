@@ -39,6 +39,7 @@ public class StringTests
         serializerMap.GetSerializer(expression.Body).Should().BeOfType(expectedSerializerType);
     }
 
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
     [Theory]
     [MemberData(nameof(NotSupportedTestCases))]
     public void SerializerFinder_should_throw_for_unsupported_string_methods(LambdaExpression expression, Type expectedSerializerType)
@@ -52,6 +53,7 @@ public class StringTests
         var exception = Record.Exception(() => serializerMap.GetSerializer(expression.Body));
         exception.Should().BeOfType<ExpressionNotSupportedException>();
     }
+#endif
 
     public static readonly object[][] SupportedTestCases =
     [
@@ -133,18 +135,17 @@ public class StringTests
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd(new char[] { ' ' })), typeof(StringSerializer)],
     ];
 
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
     public static readonly object[][] NotSupportedTestCases =
     [
-        // TODO CSHARP-5979 Make these tests supported once we support parameterless and single char overloads of Trim, TrimStart and TrimEnd.
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
-
+        // Not supported yet, see https://jira.mongodb.org/browse/CSHARP-5979
         [TestHelpers.MakeLambda((MyModel model) => model.Name.Trim(' ')), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart(' ')), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd()), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart()), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd()), typeof(StringSerializer)],
-#endif
     ];
+#endif
 
     private class MyModel
     {
