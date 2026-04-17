@@ -136,11 +136,14 @@ public class StringTests
     public static readonly object[][] NotSupportedTestCases =
     [
         // TODO CSHARP-5979 Make these tests supported once we support parameterless and single char overloads of Trim, TrimStart and TrimEnd.
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+
         [TestHelpers.MakeLambda((MyModel model) => model.Name.Trim(' ')), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart(' ')), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd()), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimStart()), typeof(StringSerializer)],
         [TestHelpers.MakeLambda((MyModel model) => model.Name.TrimEnd()), typeof(StringSerializer)],
+#endif
     ];
 
     private class MyModel
